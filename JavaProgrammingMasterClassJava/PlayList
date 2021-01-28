@@ -1,0 +1,260 @@
+---------------------------------------------------------------------
+Main.java
+---------------------------------------------------------------------
+
+import java.util.ArrayList;
+
+public class Main {
+    public static void main(String[] args) {
+        Song song1 = new Song("song1", 4.50d);
+        Song song2 = new Song("song2", 4.51d);
+        Song song3 = new Song("song3", 4.52d);
+        Song song4 = new Song("song4", 4.53d);
+        Song song5 = new Song("song5", 4.54d);
+        Song song6 = new Song("song6", 4.54d);
+        Song song7 = new Song("song7", 4.56d);
+        Song song8 = new Song("song8", 4.57d);
+
+        Album album1 = new Album();
+        Album album2 = new Album();
+        Album album3 = new Album();
+
+        album1.addSongToAlbum(song1);
+        album1.addSongToAlbum(song2);
+        album1.addSongToAlbum(song3);
+        album2.addSongToAlbum(song4);
+        album2.addSongToAlbum(song5);
+        album2.addSongToAlbum(song6);
+        album3.addSongToAlbum(song7);
+        album3.addSongToAlbum(song8);
+
+        ArrayList<Album> albumArrayList = new ArrayList<Album>();
+        albumArrayList.add(album1);
+        albumArrayList.add(album2);
+        albumArrayList.add(album3);
+
+        PlayList playlist = new PlayList();
+        playlist.addSongToPlayList(song1, albumArrayList);
+        playlist.addSongToPlayList(song2, albumArrayList);
+        playlist.addSongToPlayList(song3, albumArrayList);
+        playlist.addSongToPlayList(song4, albumArrayList);
+        playlist.addSongToPlayList(song5, albumArrayList);
+        playlist.addSongToPlayList(song6, albumArrayList);
+        playlist.addSongToPlayList(song7, albumArrayList);
+        playlist.addSongToPlayList(song8, albumArrayList);
+
+        playlist.play();
+    }
+}
+
+---------------------------------------------------------------------
+PlayList.java
+---------------------------------------------------------------------
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.Scanner;
+
+public class PlayList {
+    private LinkedList<Song> playList;
+
+    public PlayList() {
+        this.playList = new LinkedList<Song>();
+    }
+    public boolean addSongToPlayList(Song song, ArrayList<Album> albumArrayList){
+        for(int i=0;i<albumArrayList.size();i++){
+            if(albumArrayList.get(i).searchSongOnAlbum(song) != null){
+                if(searchSongOnPlaylist(song) == null){
+                    this.playList.add(song);
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private Song searchSongOnPlaylist(Song song){
+        ListIterator<Song> li = this.playList.listIterator();
+
+        while (li.hasNext()){
+            if(li.next().getTitle().equals(song.getTitle())){
+                return li.previous();
+            }
+        }
+
+        return null;
+    }
+
+    public void play() throws IllegalStateException {
+        Scanner sc = new Scanner(System.in);
+        ListIterator<Song> li = this.playList.listIterator();
+
+        boolean goingForward = true;
+
+        while (true){
+            if(!li.hasPrevious()){
+                System.out.println("Starting of the playlist.");
+                if(goingForward){
+                    if(li.hasNext()){
+                        System.out.println("Playing " + li.next().getTitle() + " now...");
+                    }
+                }else {
+                    if(li.hasNext()){
+                        li.next();
+                    }
+                    goingForward = true;
+                }
+
+            }
+            if (!li.hasNext()){
+                System.out.println("Ending of the playlist.");
+            }
+
+            showOptions();
+
+            int option = sc.nextInt();
+            sc.nextLine();
+
+            switch (option){
+                case 2: {
+                    //skipToNextSong
+                    if(!goingForward){
+                        goingForward = true;
+                        if(li.hasNext()){
+                            li.next();
+                        }
+                    }
+
+                    if(li.hasNext()){
+                        System.out.println("Playing " + li.next().getTitle() + " now...");
+                    }
+
+                    break;
+                }
+                case 3:{
+                    //skipToPreviousSong
+                    if (goingForward){
+                        goingForward = false;
+                        if(li.hasPrevious()){
+                            li.previous();
+                        }
+                    }
+
+                    if(li.hasPrevious()){
+                        System.out.println("Playing " + li.previous().getTitle() + " now...");
+                    }
+
+                    break;
+                }
+                case 4:{
+                    //replaySong
+                    if (goingForward){
+                        goingForward = false;
+                        if(li.hasPrevious()){
+                            System.out.println("Playing " + li.previous().getTitle() + " now...");
+                        }
+                    }else{
+                        goingForward = true;
+                        if(li.hasNext()){
+                            System.out.println("Playing " + li.next().getTitle() + " now...");
+                        }
+                    }
+
+                    break;
+                }
+                case 5:{
+                    //listSongs
+                    int i = 1;
+                    for(ListIterator<Song> l = this.playList.listIterator();l.hasNext();i++){
+                        System.out.println(i + ". " + l.next().getTitle());
+                    }
+
+                    break;
+                }
+                case 6:{
+                    //removeSong
+                    if (goingForward){
+                        goingForward = false;
+                        if(li.hasPrevious()){
+                            li.previous();
+                            li.remove();
+                        }
+                    }else{
+                        goingForward = true;
+                        if(li.hasNext()){
+                            li.next();
+                            li.remove();
+                        }
+                    }
+
+                    break;
+                }
+                default:return;
+            }
+        }
+    }
+
+    private void showOptions(){
+        System.out.println("1: Quit\n" +
+                "2: Skip to new song\n" +
+                "3: Skip to previous song\n" +
+                "4: Replay song\n" +
+                "5: List songs\n" +
+                "6: Remove song from playlist");
+    }
+
+}
+
+---------------------------------------------------------------------
+Album.java
+---------------------------------------------------------------------
+import java.util.LinkedList;
+import java.util.ListIterator;
+
+public class Album {
+    private LinkedList<Song> albumSongs;
+
+    public Album() {
+        this.albumSongs = new LinkedList<Song>();
+    }
+
+    public boolean addSongToAlbum(Song song){
+        if(searchSongOnAlbum(song) == null){
+            this.albumSongs.add(song);
+            return true;
+        }
+
+        return false;
+    }
+
+    public Song searchSongOnAlbum(Song song){
+        ListIterator<Song> li = this.albumSongs.listIterator();
+
+        while (li.hasNext()){
+            if(li.next().getTitle().equals(song.getTitle())){
+                return li.previous();
+            }
+        }
+
+        return null;
+    }
+}
+
+---------------------------------------------------------------------
+Song.java
+---------------------------------------------------------------------
+public class Song {
+    private String title;
+    private double duration;
+    public Song(String title, double duration) {
+        this.title = title;
+        this.duration = duration;
+    }
+    public String getTitle() {
+        return title;
+    }
+}
